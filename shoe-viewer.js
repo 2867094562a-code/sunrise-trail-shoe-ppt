@@ -6,6 +6,7 @@ const canvas = document.getElementById("shoeViewer");
 const status = document.getElementById("modelStatus");
 const resetButton = document.getElementById("resetView");
 const loadButton = document.getElementById("loadModel");
+const lowPowerButton = document.getElementById("lowPower");
 const viewerWrap = canvas?.closest(".viewer-wrap");
 const modelSlide = canvas?.closest(".slide");
 
@@ -13,6 +14,7 @@ if (canvas) {
   let started = false;
   let modelSlideActive = modelSlide?.classList.contains("active") || false;
   let lastRender = 0;
+  let lowPower = localStorage.getItem("shoe-low-power") === "1";
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x05070d, 7, 18);
 
@@ -26,14 +28,14 @@ if (canvas) {
     powerPreference: "low-power",
     preserveDrawingBuffer: true
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
+  renderer.setPixelRatio(lowPower ? 1 : Math.min(window.devicePixelRatio || 1, 1.35));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.12;
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.autoRotate = true;
+  controls.autoRotate = !lowPower;
   controls.autoRotateSpeed = 1.1;
   controls.target.set(0, 0.2, 0);
 
@@ -149,9 +151,23 @@ if (canvas) {
   resetButton?.addEventListener("click", () => {
     camera.position.set(3.8, 2.4, 5.4);
     controls.target.set(0, 0.2, 0);
-    controls.autoRotate = true;
+    controls.autoRotate = !lowPower;
   });
   loadButton?.addEventListener("click", loadShoe);
+  const syncLowPower = () => {
+    renderer.setPixelRatio(lowPower ? 1 : Math.min(window.devicePixelRatio || 1, 1.35));
+    controls.autoRotate = modelSlideActive && !lowPower;
+    lowPowerButton.textContent = lowPower ? "LOW ON" : "LOW POWER";
+    viewerWrap?.classList.toggle("low-power", lowPower);
+    localStorage.setItem("shoe-low-power", lowPower ? "1" : "0");
+    status.textContent = lowPower
+      ? "Low power mode: still preview / drag to inspect"
+      : (shoe ? "PBR model ready / drag to inspect" : status.textContent);
+  };
+  lowPowerButton?.addEventListener("click", () => {
+    lowPower = !lowPower;
+    syncLowPower();
+  });
 
   const scheduleBackgroundPreload = () => {
     const preload = () => window.setTimeout(loadShoe, 900);
@@ -174,19 +190,19 @@ if (canvas) {
   window.addEventListener("slidechange", (event) => {
     const activeTitle = document.querySelectorAll(".slide")[event.detail.index]?.dataset.title;
     const onModelSlide = activeTitle === "3D 预览";
-    controls.autoRotate = onModelSlide;
+    controls.autoRotate = onModelSlide && !lowPower;
     if (onModelSlide) window.setTimeout(loadShoe, 350);
   });
 
   window.addEventListener("slidechange", () => {
     modelSlideActive = modelSlide?.classList.contains("active") || false;
-    controls.autoRotate = modelSlideActive;
+    controls.autoRotate = modelSlideActive && !lowPower;
     if (modelSlideActive) window.setTimeout(loadShoe, 120);
   });
 
   function animate(now = 0) {
     const shouldRender = modelSlideActive || Boolean(shoe);
-    const interval = modelSlideActive ? 16 : 180;
+    const interval = modelSlideActive ? (lowPower ? 80 : 16) : 180;
     if (!shouldRender || now - lastRender < interval) {
       requestAnimationFrame(animate);
       return;
@@ -200,6 +216,7 @@ if (canvas) {
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
+  syncLowPower();
   scheduleBackgroundPreload();
   animate();
 }

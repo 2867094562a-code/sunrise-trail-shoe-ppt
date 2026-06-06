@@ -160,6 +160,7 @@
         <div class="viewer-ui">
           <span>DRAG TO ORBIT</span>
           <button id="loadModel" type="button" data-no-advance>LOAD 3D</button>
+          <button id="lowPower" type="button" data-no-advance>LOW POWER</button>
           <button id="resetView" type="button" data-no-advance>RESET</button>
         </div>
         <div id="modelStatus" class="model-status">Instant poster ready / 3D loads on this slide</div>
@@ -230,6 +231,13 @@
       <div class="scan"></div>
       <div class="final-card reveal">
         <p class="eyebrow">Because it's there.</p>
+        <div class="share-qr" data-no-advance>
+          <img src="assets/github-pages-qr.svg" alt="GitHub Pages QR code">
+          <div>
+            <b>Scan for live deck</b>
+            <span>2867094562a-code.github.io/sunrise-trail-shoe-ppt</span>
+          </div>
+        </div>
         <h2>从城市出发，向雪线加速。</h2>
         <p>这双鞋的核心表达不是“更复杂”，而是把山野符号、科技调节和可视化性能放在一个干净、强记忆点的产品故事里。</p>
       </div>
@@ -242,6 +250,10 @@
     <button id="next" type="button" aria-label="下一页">›</button>
     <button id="fullscreen" type="button" aria-label="全屏">⛶</button>
   </nav>
+  <aside id="notesPanel" class="notes-panel" data-no-advance aria-live="polite">
+    <div>Speaker Notes</div>
+    <p id="notesText"></p>
+  </aside>
   <div class="progress"><span id="progress"></span></div>
 
   <script src="deck.js"></script>
