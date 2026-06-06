@@ -1,0 +1,5 @@
+screenshots/
+assets/model/*.jpeg
+assets/model/*.JPEG
+!assets/model/*-1024.jpeg
+assets/model/*.fbm/
